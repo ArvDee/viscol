@@ -1130,7 +1130,9 @@ function viscol(myCanvas,type,callback){
   }
 
   function parseTextFile(text,fileName) {
-    var c=text.split('\n');
+    var allText=text.split('objInFile'); // split coord file text if there is also shape info in the file
+    var customShapeText=allText.slice(1);
+    var c=allText[0].split('\n');
     if(c.length<5) alert("ERROR, No particles in file?");
 
     //number of particles and title are on line 0
@@ -1207,7 +1209,7 @@ function viscol(myCanvas,type,callback){
           }
           particles.push(new viscol.particle(position,size,color,name,mat));
           if(!shapes.hasOwnProperty(name)){ //if shape does not exist
-            vertexShapes.makeShape(name,viscol.addShape);
+            vertexShapes.makeShape(name,viscol.addShape,customShapeText);
             shapes[name]=name;
           }  
         }
@@ -2548,7 +2550,7 @@ var myShapes =  function(lod){
     return new vshape('sphere',vertexPositionData,normalData,indexData);
   }
 
-  function makeShape(name,callWhenFinished){
+  function makeShape(name,callWhenFinished,shapeText=undefined){
     if(name.match(/^cylinder/i)){
       var shape = initCylinder();
       callWhenFinished(shape);
@@ -2575,6 +2577,10 @@ var myShapes =  function(lod){
       callWhenFinished(shape);
     } else if(name.match(/\.obj$/i)){
       loadFromUrl(name,name,callWhenFinished);
+    }else if(name.match(/^customObj/i)){
+      // TODO: split custom shapeText to load multiple shapes
+      var shape = loadFromObj(shapeText[0],name);
+      callWhenFinished(shape);
     } else {
       console.error("ERROR Could not make shape: "+name);
     }
